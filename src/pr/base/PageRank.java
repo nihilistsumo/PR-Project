@@ -67,10 +67,13 @@ public class PageRank {
 		HashMap<String, Double> prValues = new HashMap<String, Double>();
 		HashMap<String, Double> prValuesOld = new HashMap<String, Double>();
 		for(String node:this.graphSparseAdjMatrix.keySet()){
+			/*
 			if(this.seedNodes.contains(node))
 				prValues.put(node, (double)1/ns);
 			else
 				prValues.put(node, 0.0);
+			*/
+			prValues.put(node, (double)1/n);
 			prValuesOld.put(node, prValues.get(node));
 		}
 		boolean isConverged = false;
@@ -109,6 +112,47 @@ public class PageRank {
 	}
 	
 	public HashMap<String, Double> calculatePageRank(){
+		System.out.println("Calculating page rank...");
+		HashMap<String, Double> prValues = new HashMap<String, Double>();
+		HashMap<String, Double> prValuesOld = new HashMap<String, Double>();
+		for(String node:this.graphSparseAdjMatrix.keySet()){
+			//prValues.put(node, this.alpha/n);
+			prValues.put(node, (double)1/n);
+			prValuesOld.put(node, prValues.get(node));
+		}
+		boolean isConverged = false;
+		int it = 0;
+		while(!isConverged){
+			it++;
+			for(String node:prValues.keySet()){
+				double sumSinkScore = 0.0;
+				for(String other:prValues.keySet()){
+					if(other.equalsIgnoreCase(node))
+						continue;
+					else if(this.graphSparseAdjMatrix.get(other).contains(node))
+						sumSinkScore+=prValues.get(other)/this.graphSparseAdjMatrix.get(other).size();
+				}
+				prValues.put(node, this.alpha/n+(1-this.alpha)*sumSinkScore);
+			}
+			isConverged = checkConverged(prValues, prValuesOld);
+			for(String node:prValues.keySet())
+				prValuesOld.put(node, prValues.get(node));
+		}
+		//Normalizing
+		double sumsc = 0;
+		for(String n:prValues.keySet())
+			sumsc+=prValues.get(n);
+		for(String n:prValues.keySet())
+			prValues.put(n, prValues.get(n)/sumsc);
+		//----
+		System.out.println("Converged after "+it+" iterations.");
+		System.out.println("Number of edges: "+this.edges);
+		System.out.println("Number of nodes: "+this.n);
+		System.out.println("Random jump factor: "+this.alpha);
+		return prValues;
+	}
+	
+	public HashMap<String, Double> calculatePageRankMat(){
 		System.out.println("Calculating page rank...");
 		HashMap<String, Double> prValues = new HashMap<String, Double>();
 		HashMap<String, Double> prValuesOld = new HashMap<String, Double>();
